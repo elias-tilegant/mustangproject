@@ -11,6 +11,7 @@
         <module>library</module>
         <module>validator</module>
         <module>Mustang-CLI</module>
+        <module>Mustang-API</module>
     </modules>
 
     <description>Mustangproject is a java library and commandline tool to read, validate, write and convert EN16931 e-invoices, e.g. Factur-X and XRechnung (read and writing CII and reading also UBL).

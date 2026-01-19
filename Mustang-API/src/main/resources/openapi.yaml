@@ -1,0 +1,362 @@
+openapi: 3.0.3
+info:
+  title: Mustang API
+  version: 1.0.0
+  description: OpenAPI wrapper for Mustang CLI functionality.
+servers:
+  - url: http://localhost:8080
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  version:
+                    type: string
+  /openapi.yaml:
+    get:
+      summary: OpenAPI specification
+      responses:
+        "200":
+          description: OpenAPI YAML
+          content:
+            application/yaml:
+              schema:
+                type: string
+  /swagger:
+    get:
+      summary: Swagger UI
+      responses:
+        "200":
+          description: Swagger UI HTML
+          content:
+            text/html:
+              schema:
+                type: string
+  /api/validate:
+    post:
+      summary: Validate a PDF or XML file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - source
+              properties:
+                source:
+                  type: string
+                  format: binary
+                noNotices:
+                  type: boolean
+                  default: false
+                logAppend:
+                  type: string
+      responses:
+        "200":
+          description: Validation result (valid)
+          content:
+            application/xml:
+              schema:
+                type: string
+        "422":
+          description: Validation result (invalid)
+          content:
+            application/xml:
+              schema:
+                type: string
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/extract:
+    post:
+      summary: Extract embedded XML from a PDF
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - pdf
+              properties:
+                pdf:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Extracted XML
+          content:
+            application/xml:
+              schema:
+                type: string
+        "422":
+          description: No embedded XML found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/a3only:
+    post:
+      summary: Convert PDF/A-1 to PDF/A-3 (no ZUGFeRD data)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - pdf
+              properties:
+                pdf:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Converted PDF
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/combine:
+    post:
+      summary: Combine PDF and XML into a Factur-X/ZUGFeRD file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - pdf
+                - xml
+              properties:
+                pdf:
+                  type: string
+                  format: binary
+                xml:
+                  type: string
+                  format: binary
+                format:
+                  type: string
+                  enum: [fx, zf, ox, da]
+                  default: fx
+                version:
+                  type: integer
+                  enum: [1, 2]
+                  default: 1
+                profile:
+                  type: string
+                  description: Profile code (b, c, t, m, w, e, x, p depending on format/version)
+                ignoreInputErrors:
+                  type: boolean
+                  default: false
+                attachments:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        "200":
+          description: Combined PDF
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/visualize:
+    post:
+      summary: Convert XML to HTML or PDF visualization
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - xml
+              properties:
+                xml:
+                  type: string
+                  format: binary
+                format:
+                  type: string
+                  enum: [html, pdf]
+                  default: html
+                language:
+                  type: string
+                  enum: [en, de, fr]
+                  default: en
+      responses:
+        "200":
+          description: Visualization output
+          content:
+            text/html:
+              schema:
+                type: string
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/upgrade:
+    post:
+      summary: Upgrade ZUGFeRD 1 XML to ZUGFeRD 2 XML
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - xml
+              properties:
+                xml:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Upgraded XML
+          content:
+            application/xml:
+              schema:
+                type: string
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/ubl:
+    post:
+      summary: Convert CII to UBL XML
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - xml
+              properties:
+                xml:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: UBL XML
+          content:
+            application/xml:
+              schema:
+                type: string
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/xrechnung-viewer.css:
+    get:
+      summary: Stylesheet for HTML visualization
+      responses:
+        "200":
+          description: CSS
+          content:
+            text/css:
+              schema:
+                type: string
+  /api/xrechnung-viewer.js:
+    get:
+      summary: Script for HTML visualization
+      responses:
+        "200":
+          description: JavaScript
+          content:
+            application/javascript:
+              schema:
+                type: string
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
