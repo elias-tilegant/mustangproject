@@ -4,7 +4,8 @@ info:
   version: 1.0.0
   description: OpenAPI wrapper for Mustang CLI functionality.
 servers:
-  - url: http://localhost:8080
+  - url: /
+    description: Current host
 paths:
   /health:
     get:
